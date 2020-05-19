@@ -1,0 +1,52 @@
+---
+title: "Practical machine learning Project"
+author: "morgan"
+date: "17/5/2020"
+output: html_document
+---
+# Title : Practical machine learning week4 assignment
+
+The goal of your project is to predict the manner in which they did the exercise. This is the "classe" variable in the training set. You may use any of the other variables to predict with. You should create a report describing how you built your model, how you used cross validation, what you think the expected out of sample error is, and why you made the choices you did. You will also use your prediction model to predict 20 different test cases.
+
+--------
+## Loading and preprocessing the data
+### 1.Load the data
+```{r echo=TRUE}
+traindata <- read.csv("pml-training.csv", na.strings = c("NA","#DIV/0!", ""))
+testdata <- read.csv("pml-testing.csv", na.strings = c("NA","#DIV/0!", ""))
+```
+### 2.Preprocess the data
+```{r echo=TRUE}
+#Clean up the data to remove unnecessary information
+train1 <- c((colSums(!is.na(traindata[,-ncol(traindata)])) >= 0.6*nrow(traindata)))
+test1 <- c((colSums(!is.na(testdata[,-ncol(testdata)])) >= 0.6*nrow(testdata)))
+train <- traindata[, train1]
+test <- testdata[, test1]
+train <- train[, -(1:2)]
+test <- test[, -(1:2)]
+```
+### 3.Cross Validation
+```{r echo=TRUE}
+#Separate 60% of the training data set as training and the remaining for validation.
+library(caret)
+data_part <- createDataPartition(train$classe, p = 0.6, list = FALSE)
+train_set <- train[data_part, ] 
+vaild_set <- train[-data_part, ]
+```
+### 4.Random forest model
+```{r echo=TRUE}
+#Create a Random forest model
+library(randomForest)
+# need 1h
+# mod <- train(classe ~ ., method = "rf", data = train_set)
+# saveRDS(mod, "mod.rds")
+mod <- readRDS("mod.rds")
+mod
+pred_rf <- predict(mod, vaild_set) # vad_set was vaild_set?
+c_Matrix <- confusionMatrix(pred_rf, factor(vaild_set$classe))
+```
+### Final Model and Prediction
+```{r}
+predictionfinal <- predict(mod, test)
+predictionfinal
+```
